@@ -249,6 +249,7 @@ estims = [
     ('GB', HistGradientBoostingRegressor(max_iter = 500, random_state = 0))
 ]
 
-reg = StackingRegressor(estimators = estims, final_estimator = RandomForestRegressor(n_estimators = 100, random_state = 0))
+reg = StackingRegressor(estimators = estims, final_estimator = RandomForestRegressor(n_estimators = 100, random_state = 0), n_jobs = 3)
 reg_score = cross_val_score(reg, X_train_f, y_train, scoring = 'r2', cv = k_f)
 np.round(np.mean(reg_score), 3) # 0.923: хуже просто сети -- возможно не хватило деревьев, возможно попытка не удалась
+
