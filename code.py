@@ -220,7 +220,7 @@ for impute_estimator in imputers:
 
 
 # good_imputer = IterativeImputer(random_state = 0, estimator = BayesianRidge())
-# X_train_f = imputer.fit_transform(X_train)
+# X_train_f = good_imputer.fit_transform(X_train)
 # pd.DataFrame(X_train_f).to_csv("BayesianRidge_X_train.csv", index = False)
 
 X_train_f = pd.read_csv("BayesianRidge_X_train.csv")
@@ -231,17 +231,17 @@ k_f = KFold(n_splits = 10, shuffle = True, random_state = 0)
 # неожиданный и простой король -- эластичная сеть
 algo_1 = ElasticNetCV(l1_ratio = 0.1, normalize = True, max_iter = 1500) # adaboost ломает его!
 algo_1_score = cross_val_score(algo_1, X_train_f, y_train, scoring = 'r2', cv = k_f)
-np.round(np.mean(algo_1_score), 3) # 0.936
+np.round(np.mean(algo_1_score), 3) # 0.942
 
 # не неожиданный лес
-algo_2 = RandomForestRegressor(n_estimators = 250, random_state = 0)
+algo_2 = RandomForestRegressor(n_estimators = 100, random_state = 0)
 algo_2_score = cross_val_score(algo_2, X_train_f, y_train, scoring = 'r2', cv = k_f)
-np.round(np.mean(algo_2_score), 3) # 0.868
+np.round(np.mean(algo_2_score), 3) # 0.917
 
 # также не неожиданный бустинг
 algo_3 = HistGradientBoostingRegressor(max_iter = 500, random_state = 0)
 algo_3_score = cross_val_score(algo_3, X_train_f, y_train, scoring = 'r2', cv = k_f)
-np.round(np.mean(algo_3_score), 3) # 0.869
+np.round(np.mean(algo_3_score), 3) # 0.9
 
 # попробуем их всех объединить
 estims = [
@@ -249,6 +249,6 @@ estims = [
     ('GB', HistGradientBoostingRegressor(max_iter = 500, random_state = 0))
 ]
 
-reg = StackingRegressor(estimators = estims, final_estimator = RandomForestRegressor(n_estimators = 50, random_state = 0))
+reg = StackingRegressor(estimators = estims, final_estimator = RandomForestRegressor(n_estimators = 100, random_state = 0))
 reg_score = cross_val_score(reg, X_train_f, y_train, scoring = 'r2', cv = k_f)
 np.round(np.mean(reg_score), 3) # 0.923: хуже просто сети -- возможно не хватило деревьев, возможно попытка не удалась
