@@ -30,9 +30,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
 # предсказательные модели
-from sklearn.svm import SVR
 from sklearn.linear_model import ElasticNetCV
-from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LassoCV
+from sklearn.linear_model import RidgeCV
 # ансамбли
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import RandomForestRegressor
@@ -245,11 +245,28 @@ np.round(np.mean(algo_3_score), 3) # 0.9
 
 # попробуем их всех объединить
 estims = [
-    ('EN', ElasticNetCV(l1_ratio = 0.1, normalize = True, max_iter = 1500)),
+    ('RF', RandomForestRegressor(n_estimators = 100, random_state = 0)),
     ('GB', HistGradientBoostingRegressor(max_iter = 500, random_state = 0))
 ]
 
-reg = StackingRegressor(estimators = estims, final_estimator = RandomForestRegressor(n_estimators = 100, random_state = 0), n_jobs = 3)
-reg_score = cross_val_score(reg, X_train_f, y_train, scoring = 'r2', cv = k_f)
-np.round(np.mean(reg_score), 3) # 0.923: хуже просто сети -- возможно не хватило деревьев, возможно попытка не удалась
+# лес и бустинг генерирует даннные дополнительно к исходным, на них обучаем эластичную сеть
+# reg = StackingRegressor(estimators = estims, final_estimator = ElasticNetCV(l1_ratio = 0.1, normalize = True, max_iter = 1500), passthrough = False)
+# reg_score = cross_val_score(reg, X_train_f, y_train, scoring = 'r2', cv = k_f)
+# np.round(np.mean(reg_score), 3) # 0.918 -- не зашло
 
+# лес и бустинг генерирует даннные, на них обучаем эластичную сеть
+reg = StackingRegressor(estimators = estims, final_estimator = ElasticNetCV(l1_ratio = 0.1, normalize = True, max_iter = 1500), passthrough = True)
+reg_score = cross_val_score(reg, X_train_f, y_train, scoring = 'r2', cv = k_f)
+np.round(np.mean(reg_score), 3) # 0.952 -- пока что предел
+
+
+# эластичная сеть и бустинг генерирует даннные дополнительно к исходным, на них обучаем лес
+
+# estims = [
+#     ('EN', ElasticNetCV(l1_ratio = 0.1, normalize = True, max_iter = 1500)),
+#     ('GB', HistGradientBoostingRegressor(max_iter = 500, random_state = 0))
+# ]
+
+# reg = StackingRegressor(estimators = estims, final_estimator = RandomForestRegressor(n_estimators = 100, random_state = 0))
+# reg_score = cross_val_score(reg, X_train_f, y_train, scoring = 'r2', cv = k_f)
+# np.round(np.mean(reg_score), 3) # 0.927: хуже просто сети
